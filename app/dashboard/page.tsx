@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import SignOutButton from '@/components/SignOutButton'
+import Link from 'next/link'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -65,51 +66,50 @@ export default async function DashboardPage() {
             <h2 className="text-xl font-semibold text-gray-800">
                 Recent Entries
             </h2>
-
             {entries && entries.length > 0 ? (
                 <div className="mt-4 space-y-4">
-                {entries.map((entry) => (
-                    <article
-                    key={entry.id}
-                    className="rounded-2xl bg-white p-5 shadow-sm"
-                    >
-                    <div className="flex items-center justify-between gap-4">
-                        <span className="font-semibold capitalize text-periwinkle">
-                        {entry.mood}
-                        </span>
+                    {entries.map((entry) => (
+                        <Link
+                            key={entry.id}
+                            href={`/journal/${entry.id}`}
+                            className="block rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+                        >
+                            <div className="flex items-center justify-between gap-4">
+                                <span className="font-semibold capitalize text-periwinkle">
+                                    {entry.mood}
+                                </span>
 
-                        <span className="text-sm text-gray-400">
-                        {entry.entry_date}
-                        </span>
-                    </div>
+                                <span className="text-sm text-gray-400">
+                                    {new Date(entry.entry_date).toLocaleDateString('en-US', {
+                                        month: 'long',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                    })}
+                                </span>
+                            </div>
 
-                    <p className="mt-3 line-clamp-3 text-gray-700">
-                        {entry.content}
-                    </p>
+                            <p className="mt-3 line-clamp-3 text-gray-700">
+                                {entry.content}
+                            </p>
 
-                    {entry.playlist_strategy && (
-                        <p className="mt-3 text-xs text-gray-400">
-                        Playlist preference:{' '}
-                        {entry.playlist_strategy === 'cheer_up'
-                            ? 'Cheer me up'
-                            : 'Match my mood'}
-                        </p>
-                    )}
-                    </article>
-                ))}
+                            <p className="mt-3 text-sm font-medium text-periwinkle">
+                                Read full entry →
+                            </p>
+                        </Link>
+                    ))}
                 </div>
             ) : (
                 <div className="mt-4 rounded-2xl bg-white p-8 text-center shadow-sm">
-                <p className="text-gray-500">
-                    You don&apos;t have any journal entries yet.
-                </p>
+                    <p className="text-gray-500">
+                        You don&apos;t have any journal entries yet.
+                    </p>
 
-                <a
-                    href="/journal/new"
-                    className="mt-4 inline-block font-semibold text-periwinkle"
-                >
-                    Write your first entry
-                </a>
+                    <Link
+                        href="/journal/new"
+                        className="mt-4 inline-block font-semibold text-periwinkle"
+                    >
+                        Write your first entry
+                    </Link>
                 </div>
             )}
             </section>
