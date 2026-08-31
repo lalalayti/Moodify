@@ -24,3 +24,148 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+:root {
+	--moodify-paper: #fff9eb;
+	--moodify-paper-dark: #f5e8ce;
+	--moodify-kraft: #c7a878;
+	--moodify-kraft-dark: #ad8b5c;
+	--moodify-red: #c7253b;
+	--moodify-red-dark: #a91f32;
+	--moodify-tan: #cba66c;
+	--moodify-ink: #201914;
+	--moodify-muted: #75685c;
+}
+
+.moodify-kraft {
+	background-color: #c8a97b;
+	background-image:
+		radial-gradient(
+			circle at 20% 30%,
+			rgba(255, 255, 255, 0.08) 0,
+			transparent 20%
+		),
+		radial-gradient(
+			circle at 80% 70%,
+			rgba(75, 45, 20, 0.07) 0,
+			transparent 25%
+		),
+		repeating-linear-gradient(
+			15deg,
+			rgba(80, 55, 30, 0.025) 0,
+			rgba(80, 55, 30, 0.025) 1px,
+			transparent 1px,
+			transparent 4px
+		);
+}
+
+.moodify-paper {
+	position: relative;
+	background-color: var(--moodify-paper);
+	background-image:
+		radial-gradient(
+			circle,
+			rgba(199, 37, 59, 0.18) 1px,
+			transparent 1px
+		);
+	background-size: 16px 16px;
+	box-shadow:
+		0 12px 30px rgba(76, 52, 29, 0.16),
+		0 2px 4px rgba(76, 52, 29, 0.1);
+}
+
+.moodify-tape {
+	position: absolute;
+	width: 90px;
+	height: 28px;
+	background: rgba(188, 158, 116, 0.55);
+	box-shadow: 0 2px 4px rgba(70, 50, 30, 0.08);
+	transform: rotate(-4deg);
+	backdrop-filter: blur(1px);
+}
+
+.moodify-hand {
+	font-family:
+		"Segoe Print",
+		"Bradley Hand",
+		"Comic Sans MS",
+		cursive;
+}
+
+.moodify-logo {
+	font-family:
+		"Segoe Print",
+		"Bradley Hand",
+		"Comic Sans MS",
+		cursive;
+	font-weight: 800;
+	letter-spacing: -0.06em;
+	color: var(--moodify-ink);
+}
+
+.moodify-input {
+	width: 100%;
+	background: rgba(255, 252, 242, 0.75);
+	border: 2px dashed var(--moodify-tan);
+	padding: 12px 14px;
+	color: var(--moodify-ink);
+	outline: none;
+	transition:
+		border-color 150ms ease,
+		box-shadow 150ms ease;
+}
+
+.moodify-input:focus {
+	border-color: var(--moodify-red);
+	box-shadow: 0 0 0 3px rgba(199, 37, 59, 0.08);
+}
+
+.moodify-button {
+	background: var(--moodify-red);
+	color: white;
+	box-shadow: 4px 4px 0 rgba(120, 31, 43, 0.18);
+	transition:
+		transform 150ms ease,
+		box-shadow 150ms ease,
+		background-color 150ms ease;
+}
+
+.moodify-button:hover {
+	background: var(--moodify-red-dark);
+	transform: translate(-1px, -1px);
+	box-shadow: 6px 6px 0 rgba(120, 31, 43, 0.16);
+}
+
+.moodify-button:active {
+	transform: translate(1px, 1px);
+	box-shadow: 2px 2px 0 rgba(120, 31, 43, 0.15);
+}
+
+.moodify-stamp {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 2px solid rgba(199, 37, 59, 0.7);
+	border-radius: 9999px;
+	color: var(--moodify-red);
+	font-family:
+		"Segoe Print",
+		"Bradley Hand",
+		cursive;
+	transform: rotate(7deg);
+}
+
+.moodify-striped-label {
+	background:
+		repeating-linear-gradient(
+			45deg,
+			var(--moodify-red),
+			var(--moodify-red) 7px,
+			#fff9eb 7px,
+			#fff9eb 11px
+		);
+}
+
+.moodify-paper-edge {
+	border-radius: 5px 9px 6px 4px;
+}

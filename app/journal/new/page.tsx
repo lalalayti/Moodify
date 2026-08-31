@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 type Playlist = {
@@ -273,109 +274,158 @@ export default function NewJournalPage() {
 	}
 
 	return (
-		<main className="min-h-screen bg-offwhite px-6 py-10">
-			<div className="mx-auto max-w-3xl">
-				<Link
-					href="/dashboard"
-					className="text-sm font-medium text-[#818bbe]"
-				>
-					← Back to dashboard
-				</Link>
+		<main className="moodify-kraft min-h-screen px-4 py-8 sm:px-6 sm:py-10">
+			<div className="mx-auto max-w-4xl">
 
-				<div className="mt-6 rounded-3xl bg-white p-8 shadow-sm">
-					<h1 className="text-3xl font-bold text-[#818bbe]">
-						New Journal Entry
-					</h1>
+				{/* TOP NAV */}
+				<div className="mb-7 flex items-center justify-between gap-4">
+					<Link
+						href="/dashboard"
+						className="moodify-hand font-bold text-[#c7253b] transition hover:-translate-x-1"
+					>
+						← Back to journal
+					</Link>
 
-					<p className="mt-2 text-gray-500">
-						Write about your day and find music
-						that fits what you need.
-					</p>
+					<Image
+						src="/moodifyLOGO.svg"
+						alt="Moodify"
+						width={130}
+						height={60}
+						className="h-auto w-[115px] sm:w-[130px]"
+					/>
+				</div>
+
+				{/* MAIN JOURNAL PAPER */}
+				<div className="moodify-paper moodify-paper-edge relative px-5 py-8 sm:px-10 sm:py-10">
+					<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2" />
+
+					{/* TITLE */}
+					<div className="border-b-2 border-dashed border-[#d3ae73] pb-6">
+						<div className="inline-block bg-[#c7253b] px-4 py-1">
+							<p className="moodify-hand text-sm font-bold uppercase tracking-[0.15em] text-white">
+								today&apos;s entry
+							</p>
+						</div>
+
+						<h1 className="moodify-hand mt-4 text-4xl font-bold text-[#201914]">
+							How are you feeling?
+						</h1>
+
+						<p className="mt-2 max-w-xl text-sm leading-6 text-[#75685c]">
+							Leave your thoughts here. Moodify will help you find
+							something to listen to afterward.
+						</p>
+					</div>
 
 					{error && (
-						<div className="mt-5 rounded-xl bg-red-100 p-3 text-sm text-red-700">
+						<div className="mt-6 border-2 border-dashed border-[#c7253b] bg-[#fff1f1] px-4 py-3 text-sm text-[#a91f32]">
 							{error}
 						</div>
 					)}
 
+					{/* MOODS */}
 					<section className="mt-8">
-						<h2 className="font-semibold text-gray-800">
-							How are you feeling?
+						<h2 className="moodify-hand text-2xl font-bold text-[#c7253b]">
+							1. Pick your mood
 						</h2>
 
-						<div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
-							{moods.map((item) => (
-								<button
-									key={item.value}
-									type="button"
-									onClick={() =>
-										setMood(item.value)
-									}
-									disabled={Boolean(entryId)}
-									className={`rounded-2xl border p-4 text-center transition ${
-										mood === item.value
-											? 'border-[#818bbe] bg-[#f7fbfe]'
-											: 'border-gray-200'
-									}`}
-								>
-									<div className="text-2xl">
-										{item.emoji}
-									</div>
+						<div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+							{moods.map((item, index) => {
+								const selected =
+									mood === item.value
 
-									<p className="mt-1 text-sm font-medium text-gray-700">
-										{item.label}
-									</p>
-								</button>
-							))}
+								return (
+									<button
+										key={item.value}
+										type="button"
+										onClick={() =>
+											setMood(item.value)
+										}
+										disabled={Boolean(entryId)}
+										className={`relative px-3 py-5 text-center transition ${
+											selected
+												? 'rotate-[-2deg] bg-[#c7253b] text-white shadow-[4px_4px_0_rgba(120,31,43,0.16)]'
+												: 'border-2 border-dashed border-[#d3ae73] bg-[#fffaf0] text-[#3d332b] hover:-translate-y-1'
+										} ${
+											index % 2 === 0
+												? 'sm:rotate-[-1deg]'
+												: 'sm:rotate-[1deg]'
+										}`}
+									>
+										<div className="text-3xl">
+											{item.emoji}
+										</div>
+
+										<p
+											className={`moodify-hand mt-2 font-bold ${
+												selected
+													? 'text-white'
+													: 'text-[#3d332b]'
+											}`}
+										>
+											{item.label}
+										</p>
+									</button>
+								)
+							})}
 						</div>
 					</section>
 
-					<section className="mt-8">
+					{/* JOURNAL TEXT */}
+					<section className="mt-10">
 						<label
 							htmlFor="content"
-							className="font-semibold text-gray-800"
+							className="moodify-hand text-2xl font-bold text-[#c7253b]"
 						>
-							What&apos;s on your mind?
+							2. What&apos;s on your mind?
 						</label>
 
-						<textarea
-							id="content"
-							rows={8}
-							value={content}
-							onChange={(event) =>
-								setContent(event.target.value)
-							}
-							disabled={Boolean(entryId)}
-							placeholder="Write about your day..."
-							className="mt-3 w-full resize-none rounded-2xl border border-gray-300 p-4 outline-none focus:border-[#818bbe] disabled:bg-gray-50"
-						/>
+						<div className="relative mt-5">
+							<div className="moodify-tape left-8 top-0 -translate-y-1/2 rotate-[-5deg]" />
+
+							<textarea
+								id="content"
+								rows={9}
+								value={content}
+								onChange={(event) =>
+									setContent(event.target.value)
+								}
+								disabled={Boolean(entryId)}
+								placeholder="Write about your day..."
+								className="w-full resize-none border-2 border-dashed border-[#d3ae73] bg-[#fffdf5] px-5 py-6 leading-8 text-[#3d332b] outline-none transition focus:border-[#c7253b] disabled:bg-[#f5ecdc]"
+								style={{
+									backgroundImage:
+										'repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgba(199,37,59,0.10) 32px)',
+								}}
+							/>
+						</div>
 					</section>
 
-					<section className="mt-8">
-						<h2 className="font-semibold text-gray-800">
-							What kind of music do you want?
+					{/* MUSIC STRATEGY */}
+					<section className="mt-10">
+						<h2 className="moodify-hand text-2xl font-bold text-[#c7253b]">
+							3. What kind of music do you need?
 						</h2>
 
-						<div className="mt-3 space-y-3">
+						<div className="mt-5 grid gap-4 sm:grid-cols-2">
 							<button
 								type="button"
 								onClick={() =>
 									setPlaylistStrategy('match')
 								}
 								disabled={Boolean(entryId)}
-								className={`w-full rounded-2xl border p-4 text-left transition ${
+								className={`relative p-5 text-left transition ${
 									playlistStrategy === 'match'
-										? 'border-[#818bbe] bg-[#f7fbfe]'
-										: 'border-gray-200'
+										? 'rotate-[-1deg] border-2 border-[#c7253b] bg-[#fff4f1] shadow-[4px_4px_0_rgba(120,31,43,0.13)]'
+										: 'border-2 border-dashed border-[#d3ae73] bg-[#fffaf0] hover:-translate-y-1'
 								}`}
 							>
-								<p className="font-medium text-gray-800">
-									Match my mood
+								<p className="moodify-hand text-xl font-bold text-[#201914]">
+									♪ Match my mood
 								</p>
 
-								<p className="text-sm text-gray-500">
-									Recommend music that fits how
-									I feel.
+								<p className="mt-2 text-sm leading-6 text-[#75685c]">
+									Recommend music that fits how I feel right now.
 								</p>
 							</button>
 
@@ -387,31 +437,30 @@ export default function NewJournalPage() {
 									)
 								}
 								disabled={Boolean(entryId)}
-								className={`w-full rounded-2xl border p-4 text-left transition ${
-									playlistStrategy ===
-									'cheer_up'
-										? 'border-[#818bbe] bg-[#f7fbfe]'
-										: 'border-gray-200'
+								className={`relative p-5 text-left transition ${
+									playlistStrategy === 'cheer_up'
+										? 'rotate-[1deg] border-2 border-[#c7253b] bg-[#fff4f1] shadow-[4px_4px_0_rgba(120,31,43,0.13)]'
+										: 'border-2 border-dashed border-[#d3ae73] bg-[#fffaf0] hover:-translate-y-1'
 								}`}
 							>
-								<p className="font-medium text-gray-800">
-									Cheer me up
+								<p className="moodify-hand text-xl font-bold text-[#201914]">
+									☀ Cheer me up
 								</p>
 
-								<p className="text-sm text-gray-500">
-									Recommend music that may help
-									lift the mood.
+								<p className="mt-2 text-sm leading-6 text-[#75685c]">
+									Recommend music that may help lift the mood.
 								</p>
 							</button>
 						</div>
 					</section>
 
-					<div className="mt-8">
+					{/* GENERATE BUTTON */}
+					<div className="mt-10 flex justify-center">
 						<button
 							type="button"
 							onClick={handleGenerate}
 							disabled={loading || completed}
-							className="rounded-xl bg-[#fbbd53] px-5 py-3 font-semibold text-gray-800 transition hover:opacity-90 disabled:opacity-50"
+							className="moodify-button moodify-hand min-w-[230px] px-7 py-3 text-xl font-bold italic disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							{loading
 								? 'Finding Playlists...'
@@ -421,42 +470,58 @@ export default function NewJournalPage() {
 						</button>
 					</div>
 
+					{/* AI ANALYSIS */}
 					{analysis && (
-						<section className="mt-8 border-t border-gray-100 pt-6">
-							<h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400">
-								AI Music Analysis
-							</h2>
+						<section className="mt-12 border-t-2 border-dashed border-[#d3ae73] pt-8">
+							<div className="relative rotate-[-0.5deg] bg-[#fff4d8] p-6 shadow-[4px_5px_0_rgba(92,67,41,0.10)]">
+								<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rotate-[2deg]" />
 
-							<div className="mt-4 rounded-2xl bg-[#f7fbfe] p-5">
-								<p className="font-semibold text-gray-800">
-									Emotional Summary
+								<p className="moodify-hand text-sm font-bold uppercase tracking-[0.15em] text-[#c7253b]">
+									moodify says...
 								</p>
 
-								<p className="mt-1 text-gray-700">
-									{analysis.emotional_summary}
-								</p>
+								<h2 className="moodify-hand mt-3 text-2xl font-bold text-[#201914]">
+									A little music note for you
+								</h2>
 
-								<p className="mt-5 font-semibold text-gray-800">
-									Music Direction
-								</p>
+								<div className="mt-5">
+									<p className="moodify-hand text-lg font-bold text-[#c7253b]">
+										Emotional Summary
+									</p>
 
-								<p className="mt-1 text-gray-700">
-									{analysis.music_recommendation}
-								</p>
+									<p className="mt-2 leading-7 text-[#4a3d33]">
+										{analysis.emotional_summary}
+									</p>
+								</div>
+
+								<div className="mt-6">
+									<p className="moodify-hand text-lg font-bold text-[#c7253b]">
+										Music Direction
+									</p>
+
+									<p className="mt-2 leading-7 text-[#4a3d33]">
+										{analysis.music_recommendation}
+									</p>
+								</div>
 							</div>
 						</section>
 					)}
 
+					{/* PLAYLISTS */}
 					{playlists.length > 0 && (
-						<section className="mt-8 border-t border-gray-100 pt-6">
-							<div className="flex items-center justify-between gap-4">
+						<section className="mt-12 border-t-2 border-dashed border-[#d3ae73] pt-8">
+							<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 								<div>
-									<h2 className="text-xl font-semibold text-gray-800">
+									<p className="moodify-hand text-sm uppercase tracking-[0.15em] text-[#75685c]">
+										your mixtapes
+									</p>
+
+									<h2 className="moodify-hand text-3xl font-bold text-[#c7253b]">
 										Choose a Playlist
 									</h2>
 
-									<p className="mt-1 text-sm text-gray-500">
-										Select the playlist you want to save with this journal entry.
+									<p className="mt-1 text-sm text-[#75685c]">
+										Pick one to attach to this journal entry.
 									</p>
 								</div>
 
@@ -464,16 +529,16 @@ export default function NewJournalPage() {
 									type="button"
 									onClick={handleGenerate}
 									disabled={loading || completed}
-									className="rounded-xl border border-[#818bbe] px-4 py-2 text-sm font-semibold text-[#818bbe] transition hover:bg-[#f7fbfe] disabled:cursor-not-allowed disabled:opacity-50"
+									className="moodify-hand border-2 border-dashed border-[#c7253b] bg-[#fff9eb] px-4 py-2 font-bold text-[#c7253b] transition hover:bg-[#c7253b] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{loading
 										? 'Refreshing...'
-										: 'Refresh Suggestions'}
+										: '↻ New Suggestions'}
 								</button>
 							</div>
 
-							<div className="mt-5 space-y-4">
-								{playlists.map((playlist) => {
+							<div className="mt-7 grid gap-5 sm:grid-cols-2">
+								{playlists.map((playlist, index) => {
 									const selected =
 										selectedPlaylist?.id ===
 										playlist.id
@@ -488,22 +553,26 @@ export default function NewJournalPage() {
 												)
 											}
 											disabled={completed}
-											className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition ${
+											className={`relative flex items-center gap-4 p-4 text-left transition ${
 												selected
-													? 'border-[#818bbe] bg-[#f7fbfe]'
-													: 'border-gray-200'
+													? 'rotate-[-1deg] border-2 border-[#c7253b] bg-[#fff4f1] shadow-[5px_5px_0_rgba(120,31,43,0.13)]'
+													: 'border-2 border-dashed border-[#d3ae73] bg-[#fffdf5] hover:-translate-y-1'
+											} ${
+												index % 2 === 0
+													? 'sm:rotate-[-0.4deg]'
+													: 'sm:rotate-[0.4deg]'
 											}`}
 										>
 											{playlist.image && (
 												<img
 													src={playlist.image}
 													alt={playlist.name}
-													className="h-20 w-20 rounded-xl object-cover"
+													className="h-20 w-20 shrink-0 object-cover shadow-sm"
 												/>
 											)}
 
 											<div className="min-w-0 flex-1">
-												<p className="truncate font-semibold text-gray-800">
+												<p className="moodify-hand truncate text-lg font-bold text-[#201914]">
 													{playlist.name}
 												</p>
 
@@ -514,60 +583,71 @@ export default function NewJournalPage() {
 													onClick={(event) =>
 														event.stopPropagation()
 													}
-													className="mt-1 inline-block text-sm text-[#818bbe] hover:underline"
+													className="mt-2 inline-block text-sm font-medium text-[#c7253b] hover:underline"
 												>
-													Preview on Spotify
+													♪ Preview on Spotify
 												</a>
 											</div>
 
 											<div
-												className={`h-5 w-5 rounded-full border-2 ${
+												className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
 													selected
-														? 'border-[#818bbe] bg-[#818bbe]'
-														: 'border-gray-300'
+														? 'border-[#c7253b] bg-[#c7253b] text-white'
+														: 'border-[#cba66c]'
 												}`}
-											/>
+											>
+												{selected && '✓'}
+											</div>
 										</button>
 									)
 								})}
 							</div>
 
-							<button
-								type="button"
-								onClick={handleSavePlaylist}
-								disabled={
-									!selectedPlaylist ||
-									saving ||
-									completed
-								}
-								className="mt-6 rounded-xl bg-[#818bbe] px-5 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-							>
-								{saving
-									? 'Saving...'
-									: completed
-										? 'Playlist Saved'
-										: 'Save Selected Playlist'}
-							</button>
+							<div className="mt-8 flex justify-center">
+								<button
+									type="button"
+									onClick={handleSavePlaylist}
+									disabled={
+										!selectedPlaylist ||
+										saving ||
+										completed
+									}
+									className="moodify-button moodify-hand min-w-[230px] px-6 py-3 text-lg font-bold disabled:cursor-not-allowed disabled:opacity-50"
+								>
+									{saving
+										? 'Saving...'
+										: completed
+											? 'Playlist Saved ✓'
+											: 'Save Selected Playlist'}
+								</button>
+							</div>
 						</section>
 					)}
 
+					{/* COMPLETED */}
 					{completed && entryId && (
-						<section className="mt-8 rounded-2xl bg-green-50 p-5">
-							<p className="font-semibold text-green-700">
-								Journal and playlist saved!
+						<section className="relative mt-10 rotate-[0.5deg] border-2 border-dashed border-[#7b8c57] bg-[#f3f2d9] p-6 text-center">
+							<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rotate-[-3deg]" />
+
+							<p className="moodify-hand text-2xl font-bold text-[#5e6d40]">
+								Journal + playlist saved!
 							</p>
 
-							<div className="mt-4 flex flex-wrap gap-3">
+							<p className="mt-2 text-sm text-[#75685c]">
+								Your little memory is safely tucked away.
+							</p>
+
+							<div className="mt-5 flex flex-wrap justify-center gap-3">
 								<Link
 									href={`/journal/${entryId}`}
-									className="rounded-xl bg-[#818bbe] px-4 py-2 text-sm font-semibold text-white"
+									className="moodify-button moodify-hand px-5 py-2 font-bold"
 								>
 									View Journal
 								</Link>
 
 								<Link
 									href="/dashboard"
-									className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700"
+									className="moodify-hand border-2 border-dashed border-[#c7253b] bg-[#fff9eb] px-5 py-2 font-bold text-[#c7253b]"
 								>
 									Back to Dashboard
 								</Link>

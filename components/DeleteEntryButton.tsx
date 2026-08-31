@@ -52,9 +52,9 @@ export default function DeleteEntryButton({
 		<button
 			type="button"
 			onClick={handleDelete}
-			className="rounded-xl border border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+			className="moodify-hand border-2 border-dashed border-[#c7253b] bg-[#fff9eb] px-5 py-2 font-bold text-[#c7253b] shadow-[3px_3px_0_rgba(120,31,43,0.10)] transition hover:-translate-y-0.5 hover:bg-[#c7253b] hover:text-white"
 		>
-			Delete Entry
+			✕ Delete Entry
 		</button>
 	)
 }

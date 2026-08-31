@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 type JournalEntry = {
@@ -131,11 +132,15 @@ export default function EditJournalPage() {
 
 	if (loading) {
 		return (
-			<main className="min-h-screen bg-offwhite px-6 py-10">
-				<div className="mx-auto max-w-2xl">
-					<p className="text-gray-500">
-						Loading journal entry...
-					</p>
+			<main className="moodify-kraft min-h-screen px-4 py-10 sm:px-6">
+				<div className="mx-auto max-w-4xl">
+					<div className="moodify-paper moodify-paper-edge relative p-8">
+						<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2" />
+
+						<p className="moodify-hand text-center text-lg text-[#75685c]">
+							Opening your journal...
+						</p>
+					</div>
 				</div>
 			</main>
 		)
@@ -143,17 +148,19 @@ export default function EditJournalPage() {
 
 	if (!entry) {
 		return (
-			<main className="min-h-screen bg-offwhite px-6 py-10">
-				<div className="mx-auto max-w-2xl">
+			<main className="moodify-kraft min-h-screen px-4 py-10 sm:px-6">
+				<div className="mx-auto max-w-4xl">
 					<Link
 						href="/dashboard"
-						className="text-sm font-medium text-periwinkle"
+						className="moodify-hand font-bold text-[#c7253b]"
 					>
 						← Back to dashboard
 					</Link>
 
-					<div className="mt-6 rounded-3xl bg-white p-8 shadow-sm">
-						<p className="text-red-600">
+					<div className="moodify-paper moodify-paper-edge relative mt-7 p-8">
+						<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2" />
+
+						<p className="text-[#a91f32]">
 							{error || 'Journal entry not found.'}
 						</p>
 					</div>
@@ -163,97 +170,151 @@ export default function EditJournalPage() {
 	}
 
 	return (
-		<main className="min-h-screen bg-offwhite px-6 py-10">
-			<div className="mx-auto max-w-2xl">
-				<Link
-					href={`/journal/${entry.id}`}
-					className="text-sm font-medium text-periwinkle"
-				>
-					← Back to entry
-				</Link>
+		<main className="moodify-kraft min-h-screen px-4 py-8 sm:px-6 sm:py-10">
+			<div className="mx-auto max-w-4xl">
 
-				<div className="mt-6 rounded-3xl bg-white p-8 shadow-sm">
-					<h1 className="text-3xl font-bold text-periwinkle">
-						Edit Journal Entry
-					</h1>
+				<div className="mb-7 flex items-center justify-between gap-4">
+					<Link
+						href={`/journal/${entry.id}`}
+						className="moodify-hand font-bold text-[#c7253b] transition hover:-translate-x-1"
+					>
+						← Back to entry
+					</Link>
 
-					<p className="mt-2 text-gray-500">
-						Update how you felt or what you wrote.
-					</p>
+					<Image
+						src="/moodifyLOGO.svg"
+						alt="Moodify"
+						width={130}
+						height={60}
+						className="h-auto w-[115px] sm:w-[130px]"
+					/>
+				</div>
+
+				<div className="moodify-paper moodify-paper-edge relative px-5 py-8 sm:px-10 sm:py-10">
+					<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rotate-[2deg]" />
+
+					<div className="border-b-2 border-dashed border-[#d3ae73] pb-6">
+						<div className="inline-block bg-[#c7253b] px-4 py-1">
+							<p className="moodify-hand text-sm font-bold uppercase tracking-[0.15em] text-white">
+								edit mode
+							</p>
+						</div>
+
+						<h1 className="moodify-hand mt-4 text-4xl font-bold text-[#201914]">
+							Edit Journal Entry
+						</h1>
+
+						<p className="mt-2 text-sm leading-6 text-[#75685c]">
+							Change anything you want, then tuck the updated page back into your journal.
+						</p>
+					</div>
 
 					{error && (
-						<div className="mt-4 rounded-xl bg-red-100 p-3 text-sm text-red-700">
+						<div className="mt-6 border-2 border-dashed border-[#c7253b] bg-[#fff1f1] px-4 py-3 text-sm text-[#a91f32]">
 							{error}
 						</div>
 					)}
 
 					<form
 						onSubmit={handleSubmit}
-						className="mt-8 space-y-8"
+						className="mt-8 space-y-10"
 					>
 						<section>
-							<h2 className="font-semibold text-gray-800">
-								Choose your mood
+							<h2 className="moodify-hand text-2xl font-bold text-[#c7253b]">
+								1. Update your mood
 							</h2>
 
-							<div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
-								{moods.map((moodOption) => (
-									<label
-										key={moodOption.value}
-										className="cursor-pointer rounded-2xl border border-gray-200 p-4 text-center"
-									>
-										<input
-											type="radio"
-											name="mood"
-											value={moodOption.value}
-											checked={mood === moodOption.value}
-											onChange={(event) =>
-												setMood(event.target.value)
-											}
-											required
-											className="mb-2"
-										/>
+							<div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+								{moods.map((moodOption, index) => {
+									const selected =
+										mood === moodOption.value
 
-										<div className="text-2xl">
-											{moodOption.emoji}
-										</div>
+									return (
+										<label
+											key={moodOption.value}
+											className={`cursor-pointer px-3 py-5 text-center transition ${
+												selected
+													? 'rotate-[-2deg] bg-[#c7253b] text-white shadow-[4px_4px_0_rgba(120,31,43,0.16)]'
+													: 'border-2 border-dashed border-[#d3ae73] bg-[#fffaf0] hover:-translate-y-1'
+											} ${
+												index % 2 === 0
+													? 'sm:rotate-[-1deg]'
+													: 'sm:rotate-[1deg]'
+											}`}
+										>
+											<input
+												type="radio"
+												name="mood"
+												value={moodOption.value}
+												checked={selected}
+												onChange={(event) =>
+													setMood(event.target.value)
+												}
+												required
+												className="sr-only"
+											/>
 
-										<div className="mt-1 text-sm font-medium text-gray-700">
-											{moodOption.label}
-										</div>
-									</label>
-								))}
+											<div className="text-3xl">
+												{moodOption.emoji}
+											</div>
+
+											<div
+												className={`moodify-hand mt-2 font-bold ${
+													selected
+														? 'text-white'
+														: 'text-[#3d332b]'
+												}`}
+											>
+												{moodOption.label}
+											</div>
+										</label>
+									)
+								})}
 							</div>
 						</section>
 
 						<section>
 							<label
 								htmlFor="content"
-								className="font-semibold text-gray-800"
+								className="moodify-hand text-2xl font-bold text-[#c7253b]"
 							>
-								What&apos;s on your mind?
+								2. Rewrite your thoughts
 							</label>
 
-							<textarea
-								id="content"
-								name="content"
-								required
-								rows={8}
-								value={content}
-								onChange={(event) =>
-									setContent(event.target.value)
-								}
-								className="mt-3 w-full resize-none rounded-2xl border border-gray-300 p-4 outline-none focus:border-periwinkle"
-							/>
+							<div className="relative mt-5">
+								<div className="moodify-tape left-8 top-0 -translate-y-1/2 rotate-[-5deg]" />
+
+								<textarea
+									id="content"
+									name="content"
+									required
+									rows={10}
+									value={content}
+									onChange={(event) =>
+										setContent(event.target.value)
+									}
+									className="w-full resize-none border-2 border-dashed border-[#d3ae73] bg-[#fffdf5] px-5 py-6 leading-8 text-[#3d332b] outline-none transition focus:border-[#c7253b]"
+									style={{
+										backgroundImage:
+											'repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgba(199,37,59,0.10) 32px)',
+									}}
+								/>
+							</div>
 						</section>
 
 						<section>
-							<h2 className="font-semibold text-gray-800">
-								What kind of music do you want?
+							<h2 className="moodify-hand text-2xl font-bold text-[#c7253b]">
+								3. Update your music preference
 							</h2>
 
-							<div className="mt-3 space-y-3">
-								<label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-200 p-4">
+							<div className="mt-5 grid gap-4 sm:grid-cols-2">
+								<label
+									className={`cursor-pointer p-5 text-left transition ${
+										playlistStrategy === 'match'
+											? 'rotate-[-1deg] border-2 border-[#c7253b] bg-[#fff4f1] shadow-[4px_4px_0_rgba(120,31,43,0.13)]'
+											: 'border-2 border-dashed border-[#d3ae73] bg-[#fffaf0] hover:-translate-y-1'
+									}`}
+								>
 									<input
 										type="radio"
 										name="playlist_strategy"
@@ -265,20 +326,25 @@ export default function EditJournalPage() {
 											)
 										}
 										required
+										className="sr-only"
 									/>
 
-									<div>
-										<p className="font-medium text-gray-800">
-											Match my mood
-										</p>
+									<p className="moodify-hand text-xl font-bold text-[#201914]">
+										♪ Match my mood
+									</p>
 
-										<p className="text-sm text-gray-500">
-											Recommend music that fits how I feel.
-										</p>
-									</div>
+									<p className="mt-2 text-sm leading-6 text-[#75685c]">
+										Recommend music that fits how I feel.
+									</p>
 								</label>
 
-								<label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-200 p-4">
+								<label
+									className={`cursor-pointer p-5 text-left transition ${
+										playlistStrategy === 'cheer_up'
+											? 'rotate-[1deg] border-2 border-[#c7253b] bg-[#fff4f1] shadow-[4px_4px_0_rgba(120,31,43,0.13)]'
+											: 'border-2 border-dashed border-[#d3ae73] bg-[#fffaf0] hover:-translate-y-1'
+									}`}
+								>
 									<input
 										type="radio"
 										name="playlist_strategy"
@@ -292,35 +358,34 @@ export default function EditJournalPage() {
 											)
 										}
 										required
+										className="sr-only"
 									/>
 
-									<div>
-										<p className="font-medium text-gray-800">
-											Cheer me up
-										</p>
+									<p className="moodify-hand text-xl font-bold text-[#201914]">
+										☀ Cheer me up
+									</p>
 
-										<p className="text-sm text-gray-500">
-											Recommend music that may help lift my mood.
-										</p>
-									</div>
+									<p className="mt-2 text-sm leading-6 text-[#75685c]">
+										Recommend music that may help lift my mood.
+									</p>
 								</label>
 							</div>
 						</section>
 
-						<div className="flex gap-3">
+						<div className="flex flex-wrap gap-4 border-t-2 border-dashed border-[#d3ae73] pt-7">
 							<button
 								type="submit"
 								disabled={saving}
-								className="rounded-xl bg-marigold px-5 py-3 font-semibold text-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+								className="moodify-button moodify-hand px-6 py-3 text-lg font-bold disabled:cursor-not-allowed disabled:opacity-50"
 							>
 								{saving
 									? 'Saving...'
-									: 'Save Changes'}
+									: '✓ Save Changes'}
 							</button>
 
 							<Link
 								href={`/journal/${entry.id}`}
-								className="rounded-xl border border-gray-300 px-5 py-3 font-semibold text-gray-600"
+								className="moodify-hand border-2 border-dashed border-[#c7253b] bg-[#fff9eb] px-6 py-3 font-bold text-[#c7253b] transition hover:bg-[#c7253b] hover:text-white"
 							>
 								Cancel
 							</Link>

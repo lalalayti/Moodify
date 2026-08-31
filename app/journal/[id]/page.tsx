@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import DeleteEntryButton from '@/components/DeleteEntryButton'
 import GeneratePlaylistButton from '@/components/GeneratePlaylistButton'
@@ -70,11 +71,15 @@ export default function JournalPage() {
 
 	if (loading) {
 		return (
-			<main className="min-h-screen bg-offwhite px-6 py-10">
-				<div className="mx-auto max-w-3xl">
-					<p className="text-gray-500">
-						Loading journal entry...
-					</p>
+			<main className="moodify-kraft min-h-screen px-4 py-10 sm:px-6">
+				<div className="mx-auto max-w-4xl">
+					<div className="moodify-paper moodify-paper-edge relative p-8">
+						<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2" />
+
+						<p className="moodify-hand text-center text-lg text-[#75685c]">
+							Opening your journal entry...
+						</p>
+					</div>
 				</div>
 			</main>
 		)
@@ -82,17 +87,19 @@ export default function JournalPage() {
 
 	if (error || !entry) {
 		return (
-			<main className="min-h-screen bg-offwhite px-6 py-10">
-				<div className="mx-auto max-w-3xl">
+			<main className="moodify-kraft min-h-screen px-4 py-10 sm:px-6">
+				<div className="mx-auto max-w-4xl">
 					<Link
 						href="/dashboard"
-						className="text-sm font-medium text-[#818bbe]"
+						className="moodify-hand font-bold text-[#c7253b]"
 					>
 						← Back to dashboard
 					</Link>
 
-					<div className="mt-6 rounded-3xl bg-white p-8 shadow-sm">
-						<p className="text-red-600">
+					<div className="moodify-paper moodify-paper-edge relative mt-7 p-8">
+						<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2" />
+
+						<p className="text-[#a91f32]">
 							{error || 'Journal entry not found.'}
 						</p>
 					</div>
@@ -111,72 +118,129 @@ export default function JournalPage() {
 	})
 
 	return (
-		<main className="min-h-screen bg-offwhite px-6 py-10">
-			<div className="mx-auto max-w-3xl">
-				<Link
-					href="/dashboard"
-					className="text-sm font-medium text-[#818bbe]"
-				>
-					← Back to dashboard
-				</Link>
+		<main className="moodify-kraft min-h-screen px-4 py-8 sm:px-6 sm:py-10">
+			<div className="mx-auto max-w-4xl">
 
-				<article className="mt-6 rounded-3xl bg-white p-8 shadow-sm">
-					<div className="flex flex-col gap-2 border-b border-gray-100 pb-6 sm:flex-row sm:items-center sm:justify-between">
-						<div>
-							<p className="text-sm text-gray-400">
-								{formattedDate}
-							</p>
+				{/* TOP NAV */}
+				<div className="mb-7 flex items-center justify-between gap-4">
+					<Link
+						href="/dashboard"
+						className="moodify-hand font-bold text-[#c7253b] transition hover:-translate-x-1"
+					>
+						← Back to journal
+					</Link>
 
-							<h1 className="mt-1 text-3xl font-bold capitalize text-[#818bbe]">
-								{entry.mood}
-							</h1>
+					<Image
+						src="/moodifyLOGO.svg"
+						alt="Moodify"
+						width={130}
+						height={60}
+						className="h-auto w-[115px] sm:w-[130px]"
+					/>
+				</div>
+
+				{/* MAIN JOURNAL PAGE */}
+				<article className="moodify-paper moodify-paper-edge relative px-5 py-8 sm:px-10 sm:py-10">
+					<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rotate-[2deg]" />
+
+					{/* ENTRY HEADER */}
+					<div className="border-b-2 border-dashed border-[#d3ae73] pb-7">
+						<div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+							<div>
+								<p className="moodify-hand text-sm uppercase tracking-[0.18em] text-[#75685c]">
+									journal entry
+								</p>
+
+								<h1 className="moodify-hand mt-2 text-4xl font-bold capitalize text-[#c7253b]">
+									{entry.mood}
+								</h1>
+
+								<p className="mt-2 text-sm text-[#75685c]">
+									{formattedDate}
+								</p>
+							</div>
+
+							<div className="flex items-start gap-4">
+								{entry.entry_time && (
+									<div className="rotate-[2deg] border-2 border-dashed border-[#c7253b] px-4 py-2 text-center">
+										<p className="moodify-hand text-xs uppercase text-[#75685c]">
+											time
+										</p>
+
+										<p className="moodify-hand font-bold text-[#c7253b]">
+											{entry.entry_time.slice(0, 5)}
+										</p>
+									</div>
+								)}
+
+								<div className="moodify-stamp h-16 w-16 text-xs font-bold">
+									saved
+								</div>
+							</div>
 						</div>
-
-						{entry.entry_time && (
-							<p className="text-sm text-gray-400">
-								{entry.entry_time.slice(0, 5)}
-							</p>
-						)}
 					</div>
 
-					<section className="mt-8">
-						<h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400">
-							Journal Entry
+					{/* JOURNAL ENTRY */}
+					<section className="mt-9">
+						<h2 className="moodify-hand text-2xl font-bold text-[#c7253b]">
+							What was on your mind
 						</h2>
 
-						<p className="mt-4 whitespace-pre-wrap leading-8 text-gray-700">
-							{entry.content}
-						</p>
+						<div
+							className="relative mt-5 min-h-[220px] border-2 border-dashed border-[#d3ae73] bg-[#fffdf5] px-5 py-6"
+							style={{
+								backgroundImage:
+									'repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgba(199,37,59,0.09) 32px)',
+							}}
+						>
+							<div className="moodify-tape left-8 top-0 -translate-y-1/2 rotate-[-4deg]" />
+
+							<p className="whitespace-pre-wrap leading-8 text-[#3d332b]">
+								{entry.content}
+							</p>
+						</div>
 					</section>
 
+					{/* PLAYLIST PREFERENCE */}
 					{entry.playlist_strategy && (
-						<section className="mt-8 border-t border-gray-100 pt-6">
-							<h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400">
-								Playlist Preference
-							</h2>
-
-							<p className="mt-2 text-gray-700">
-								{entry.playlist_strategy === 'cheer_up'
-									? 'Cheer me up'
-									: 'Match my mood'}
+						<section className="mt-9 border-t-2 border-dashed border-[#d3ae73] pt-7">
+							<p className="moodify-hand text-sm uppercase tracking-[0.16em] text-[#75685c]">
+								music choice
 							</p>
+
+							<div className="mt-3 inline-block rotate-[-1deg] bg-[#fff4d8] px-5 py-3 shadow-[4px_4px_0_rgba(92,67,41,0.08)]">
+								<p className="moodify-hand text-lg font-bold text-[#201914]">
+									♪
+									{' '}
+									{entry.playlist_strategy === 'cheer_up'
+										? 'Cheer me up'
+										: 'Match my mood'}
+								</p>
+							</div>
 						</section>
 					)}
 
-					<section className="mt-8 border-t border-gray-100 pt-6">
-						<h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400">
-							AI Music Analysis
+					{/* AI ANALYSIS */}
+					<section className="mt-9 border-t-2 border-dashed border-[#d3ae73] pt-8">
+						<h2 className="moodify-hand text-2xl font-bold text-[#c7253b]">
+							Moodify&apos;s note
 						</h2>
 
 						{entry.ai_reasoning ? (
-							<div className="mt-4">
-								<div className="rounded-2xl bg-[#f7fbfe] p-5">
-									<p className="whitespace-pre-wrap leading-7 text-gray-700">
+							<div className="mt-5">
+								<div className="relative rotate-[0.4deg] bg-[#fff4d8] p-6 shadow-[5px_5px_0_rgba(92,67,41,0.10)]">
+									<div className="moodify-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rotate-[3deg]" />
+
+									<p className="moodify-hand text-sm font-bold uppercase tracking-[0.15em] text-[#c7253b]">
+										a little music note for you
+									</p>
+
+									<p className="mt-4 whitespace-pre-wrap leading-7 text-[#4a3d33]">
 										{entry.ai_reasoning}
 									</p>
 								</div>
 
-								<div className="mt-5">
+								<div className="mt-6">
 									<GeneratePlaylistButton
 										entryId={entry.id}
 										hasAnalysis={true}
@@ -184,10 +248,10 @@ export default function JournalPage() {
 								</div>
 							</div>
 						) : (
-							<div className="mt-4">
-								<p className="mb-4 text-gray-500">
-									Generate a music recommendation based on
-									your mood and journal entry.
+							<div className="mt-5 border-2 border-dashed border-[#d3ae73] bg-[#fffaf0] p-5">
+								<p className="mb-4 text-[#75685c]">
+									Generate a music recommendation based on your mood
+									and journal entry.
 								</p>
 
 								<GeneratePlaylistButton
@@ -198,30 +262,39 @@ export default function JournalPage() {
 						)}
 					</section>
 
+					{/* SAVED PLAYLIST */}
 					{entry.spotify_playlist_id &&
 						entry.spotify_playlist_name &&
 						entry.spotify_playlist_url && (
-							<section className="mt-8 border-t border-gray-100 pt-6">
-								<h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400">
-									Recommended Playlist
+							<section className="mt-10 border-t-2 border-dashed border-[#d3ae73] pt-8">
+								<p className="moodify-hand text-sm uppercase tracking-[0.16em] text-[#75685c]">
+									your soundtrack
+								</p>
+
+								<h2 className="moodify-hand mt-1 text-3xl font-bold text-[#c7253b]">
+									Saved Playlist
 								</h2>
 
-								<div className="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-[#f7fbfe]">
-									<div className="flex items-center gap-5 p-5">
+								<div className="relative mt-6 rotate-[-0.5deg] border-2 border-dashed border-[#d3ae73] bg-[#fffdf5] p-5 shadow-[5px_5px_0_rgba(92,67,41,0.08)]">
+									<div className="moodify-tape left-10 top-0 -translate-y-1/2 rotate-[-5deg]" />
+
+									<div className="flex flex-col gap-5 sm:flex-row sm:items-center">
 										{entry.spotify_playlist_image && (
-											<img
-												src={entry.spotify_playlist_image}
-												alt={entry.spotify_playlist_name}
-												className="h-24 w-24 rounded-xl object-cover"
-											/>
+											<div className="shrink-0 bg-white p-2 shadow-md">
+												<img
+													src={entry.spotify_playlist_image}
+													alt={entry.spotify_playlist_name}
+													className="h-36 w-36 object-cover sm:h-32 sm:w-32"
+												/>
+											</div>
 										)}
 
 										<div className="min-w-0 flex-1">
-											<p className="text-sm text-gray-400">
+											<p className="moodify-hand text-sm font-bold uppercase tracking-[0.15em] text-[#75685c]">
 												Spotify Playlist
 											</p>
 
-											<h3 className="mt-1 truncate text-xl font-semibold text-gray-800">
+											<h3 className="moodify-hand mt-2 text-2xl font-bold text-[#201914]">
 												{entry.spotify_playlist_name}
 											</h3>
 
@@ -229,9 +302,9 @@ export default function JournalPage() {
 												href={entry.spotify_playlist_url}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="mt-4 inline-block rounded-xl bg-[#1DB954] px-5 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+												className="moodify-button moodify-hand mt-5 inline-block px-5 py-2 font-bold"
 											>
-												Open in Spotify
+												♪ Open in Spotify
 											</a>
 										</div>
 									</div>
@@ -239,13 +312,14 @@ export default function JournalPage() {
 							</section>
 						)}
 
-					<section className="mt-8 border-t border-gray-100 pt-6">
-						<div className="flex items-center gap-3">
+					{/* ACTIONS */}
+					<section className="mt-10 border-t-2 border-dashed border-[#d3ae73] pt-7">
+						<div className="flex flex-wrap items-center gap-4">
 							<Link
 								href={`/journal/${entry.id}/edit`}
-								className="rounded-xl bg-[#818bbe] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+								className="moodify-button moodify-hand px-5 py-2 font-bold"
 							>
-								Edit Entry
+								✎ Edit Entry
 							</Link>
 
 							<DeleteEntryButton entryId={entry.id} />
