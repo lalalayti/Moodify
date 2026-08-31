@@ -4,6 +4,10 @@
 
 Moodify is a private mood-journaling web app that recommends Spotify playlists based on your journal entry, selected mood, and music preference.
 
+## 🔗 Live Demo
+
+https://moodify-lyart-five.vercel.app/login
+
 ## ✎ Features
 
 - User signup and login
