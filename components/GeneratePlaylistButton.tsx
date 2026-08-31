@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 type Playlist = {
 	id: string
@@ -32,13 +33,44 @@ export default function GeneratePlaylistButton({
 		setPlaylists([])
 
 		try {
+			const supabase = createClient()
+
+			const {
+				data: { user },
+				error: userError,
+			} = await supabase.auth.getUser()
+
+			if (userError || !user) {
+				router.replace('/login')
+				return
+			}
+
+			const { data: entry, error: entryError } =
+				await supabase
+					.from('journal_entries')
+					.select('mood, content, playlist_strategy')
+					.eq('id', entryId)
+					.eq('user_id', user.id)
+					.single()
+
+			if (entryError || !entry) {
+				throw new Error('Journal entry not found.')
+			}
+
 			const response = await fetch('/api/analyze-entry', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-					entryId,
+					mood: entry.mood,
+					content: entry.content,
+					playlistStrategy:
+						entry.playlist_strategy,
+					excludePlaylistIds:
+						playlists.map(
+							(playlist) => playlist.id
+						),
 				}),
 			})
 
@@ -48,6 +80,33 @@ export default function GeneratePlaylistButton({
 				throw new Error(
 					data.error || 'Something went wrong.'
 				)
+			}
+
+			const analysis = data.analysis
+
+			const reasoning = [
+				analysis.emotional_summary,
+				analysis.music_recommendation,
+				`Search Terms: ${analysis.search_terms.join(', ')}`,
+			].join('\n\n')
+
+			const { error: updateError } =
+				await supabase
+					.from('journal_entries')
+					.update({
+						ai_reasoning: reasoning,
+						ai_emotional_summary:
+							analysis.emotional_summary,
+						ai_music_direction:
+							analysis.music_recommendation,
+						ai_search_terms:
+							analysis.search_terms,
+					})
+					.eq('id', entryId)
+					.eq('user_id', user.id)
+
+			if (updateError) {
+				throw new Error(updateError.message)
 			}
 
 			setPlaylists(data.playlists ?? [])
@@ -64,28 +123,43 @@ export default function GeneratePlaylistButton({
 		}
 	}
 
-	async function handleSavePlaylist(playlist: Playlist) {
+	async function handleSavePlaylist(
+		playlist: Playlist
+	) {
 		setSavingId(playlist.id)
 		setError('')
 
 		try {
-			const response = await fetch('/api/save-playlist', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					entryId,
-					playlist,
-				}),
-			})
+			const supabase = createClient()
 
-			const data = await response.json()
+			const {
+				data: { user },
+				error: userError,
+			} = await supabase.auth.getUser()
 
-			if (!response.ok) {
-				throw new Error(
-					data.error || 'Failed to save playlist.'
-				)
+			if (userError || !user) {
+				router.replace('/login')
+				return
+			}
+
+			const { error: saveError } =
+				await supabase
+					.from('journal_entries')
+					.update({
+						spotify_playlist_id:
+							playlist.id,
+						spotify_playlist_name:
+							playlist.name,
+						spotify_playlist_url:
+							playlist.url,
+						spotify_playlist_image:
+							playlist.image,
+					})
+					.eq('id', entryId)
+					.eq('user_id', user.id)
+
+			if (saveError) {
+				throw new Error(saveError.message)
 			}
 
 			setPlaylists([])
@@ -161,7 +235,9 @@ export default function GeneratePlaylistButton({
 								<button
 									type="button"
 									onClick={() =>
-										handleSavePlaylist(playlist)
+										handleSavePlaylist(
+											playlist
+										)
 									}
 									disabled={savingId !== null}
 									className="rounded-xl bg-[#818bbe] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"

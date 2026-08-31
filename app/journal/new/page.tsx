@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 type Playlist = {
 	id: string
@@ -12,7 +14,7 @@ type Playlist = {
 
 type Analysis = {
 	emotional_summary: string
-	music_direction: string
+	music_recommendation: string
 	search_terms: string[]
 }
 
@@ -45,6 +47,8 @@ const moods = [
 ]
 
 export default function NewJournalPage() {
+	const router = useRouter()
+
 	const [mood, setMood] = useState('')
 	const [content, setContent] = useState('')
 	const [playlistStrategy, setPlaylistStrategy] =
@@ -58,6 +62,9 @@ export default function NewJournalPage() {
 
 	const [playlists, setPlaylists] =
 		useState<Playlist[]>([])
+
+	const [seenPlaylistIds, setSeenPlaylistIds] =
+		useState<string[]>([])
 
 	const [selectedPlaylist, setSelectedPlaylist] =
 		useState<Playlist | null>(null)
@@ -88,53 +95,60 @@ export default function NewJournalPage() {
 		setSelectedPlaylist(null)
 
 		try {
+			const supabase = createClient()
+
+			const {
+				data: { user },
+				error: userError,
+			} = await supabase.auth.getUser()
+
+			if (userError || !user) {
+				router.replace('/login')
+				return
+			}
+
 			let currentEntryId = entryId
 
 			if (!currentEntryId) {
-				const createResponse =
-					await fetch('/api/create-entry', {
-						method: 'POST',
-						headers: {
-							'Content-Type':
-								'application/json',
-						},
-						body: JSON.stringify({
+				const { data: entry, error: createError } =
+					await supabase
+						.from('journal_entries')
+						.insert({
+							user_id: user.id,
 							mood,
 							content,
 							playlist_strategy:
 								playlistStrategy,
-						}),
-					})
+						})
+						.select('id')
+						.single()
 
-				const createData =
-					await createResponse.json()
-
-				if (!createResponse.ok) {
+				if (createError || !entry) {
 					throw new Error(
-						createData.error ||
+						createError?.message ||
 							'Failed to create journal entry.'
 					)
 				}
 
-				currentEntryId =
-					createData.entryId
-
-				setEntryId(currentEntryId)
+				currentEntryId = entry.id
+				setEntryId(entry.id)
 			}
 
 			const analyzeResponse =
-            await fetch('/api/analyze-entry', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    entryId: currentEntryId,
-                    excludePlaylistIds: playlists.map(
-                        (playlist) => playlist.id
-                    ),
-                }),
-            })
+				await fetch('/api/analyze-entry', {
+					method: 'POST',
+					headers: {
+						'Content-Type':
+							'application/json',
+					},
+					body: JSON.stringify({
+						mood,
+						content,
+						playlistStrategy,
+						excludePlaylistIds:
+							seenPlaylistIds,
+					}),
+				})
 
 			const analyzeData =
 				await analyzeResponse.json()
@@ -146,17 +160,56 @@ export default function NewJournalPage() {
 				)
 			}
 
-			setAnalysis(analyzeData.analysis)
-			setPlaylists(
-				analyzeData.playlists ?? []
-			)
+			const newAnalysis =
+				analyzeData.analysis as Analysis
+
+			const newPlaylists =
+				(analyzeData.playlists ??
+					[]) as Playlist[]
+
+			const reasoning = [
+				newAnalysis.emotional_summary,
+				newAnalysis.music_recommendation,
+				`Search Terms: ${newAnalysis.search_terms.join(', ')}`,
+			].join('\n\n')
+
+			const { error: analysisSaveError } =
+				await supabase
+					.from('journal_entries')
+					.update({
+						ai_reasoning: reasoning,
+						ai_emotional_summary:
+							newAnalysis.emotional_summary,
+						ai_music_direction:
+							newAnalysis.music_recommendation,
+						ai_search_terms:
+							newAnalysis.search_terms,
+					})
+					.eq('id', currentEntryId)
+					.eq('user_id', user.id)
+
+			if (analysisSaveError) {
+				throw new Error(
+					analysisSaveError.message
+				)
+			}
+
+			setAnalysis(newAnalysis)
+			setPlaylists(newPlaylists)
+
+			setSeenPlaylistIds((previous) => [
+				...new Set([
+					...previous,
+					...newPlaylists.map(
+						(playlist) => playlist.id
+					),
+				]),
+			])
 		} catch (error) {
 			if (error instanceof Error) {
 				setError(error.message)
 			} else {
-				setError(
-					'Something went wrong.'
-				)
+				setError('Something went wrong.')
 			}
 		} finally {
 			setLoading(false)
@@ -175,28 +228,36 @@ export default function NewJournalPage() {
 		setError('')
 
 		try {
-			const response =
-				await fetch('/api/save-playlist', {
-					method: 'POST',
-					headers: {
-						'Content-Type':
-							'application/json',
-					},
-					body: JSON.stringify({
-						entryId,
-						playlist:
-							selectedPlaylist,
-					}),
-				})
+			const supabase = createClient()
 
-			const data =
-				await response.json()
+			const {
+				data: { user },
+				error: userError,
+			} = await supabase.auth.getUser()
 
-			if (!response.ok) {
-				throw new Error(
-					data.error ||
-						'Failed to save playlist.'
-				)
+			if (userError || !user) {
+				router.replace('/login')
+				return
+			}
+
+			const { error: saveError } =
+				await supabase
+					.from('journal_entries')
+					.update({
+						spotify_playlist_id:
+							selectedPlaylist.id,
+						spotify_playlist_name:
+							selectedPlaylist.name,
+						spotify_playlist_url:
+							selectedPlaylist.url,
+						spotify_playlist_image:
+							selectedPlaylist.image,
+					})
+					.eq('id', entryId)
+					.eq('user_id', user.id)
+
+			if (saveError) {
+				throw new Error(saveError.message)
 			}
 
 			setCompleted(true)
@@ -204,9 +265,7 @@ export default function NewJournalPage() {
 			if (error instanceof Error) {
 				setError(error.message)
 			} else {
-				setError(
-					'Something went wrong.'
-				)
+				setError('Something went wrong.')
 			}
 		} finally {
 			setSaving(false)
@@ -382,7 +441,7 @@ export default function NewJournalPage() {
 								</p>
 
 								<p className="mt-1 text-gray-700">
-									{analysis.music_direction}
+									{analysis.music_recommendation}
 								</p>
 							</div>
 						</section>
@@ -391,30 +450,27 @@ export default function NewJournalPage() {
 					{playlists.length > 0 && (
 						<section className="mt-8 border-t border-gray-100 pt-6">
 							<div className="flex items-center justify-between gap-4">
-                                <div>
-                                    <h2 className="text-xl font-semibold text-gray-800">
-                                        Choose a Playlist
-                                    </h2>
+								<div>
+									<h2 className="text-xl font-semibold text-gray-800">
+										Choose a Playlist
+									</h2>
 
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Select the playlist you want to save with this journal entry.
-                                    </p>
-                                </div>
+									<p className="mt-1 text-sm text-gray-500">
+										Select the playlist you want to save with this journal entry.
+									</p>
+								</div>
 
-                                <button
-                                    type="button"
-                                    onClick={handleGenerate}
-                                    disabled={loading || completed}
-                                    className="rounded-xl border border-[#818bbe] px-4 py-2 text-sm font-semibold text-[#818bbe] transition hover:bg-[#f7fbfe] disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    {loading ? 'Refreshing...' : 'Refresh Suggestions'}
-                                </button>
-                                </div>
-
-							<p className="mt-1 text-sm text-gray-500">
-								Select the playlist you want to save
-								with this journal entry.
-							</p>
+								<button
+									type="button"
+									onClick={handleGenerate}
+									disabled={loading || completed}
+									className="rounded-xl border border-[#818bbe] px-4 py-2 text-sm font-semibold text-[#818bbe] transition hover:bg-[#f7fbfe] disabled:cursor-not-allowed disabled:opacity-50"
+								>
+									{loading
+										? 'Refreshing...'
+										: 'Refresh Suggestions'}
+								</button>
+							</div>
 
 							<div className="mt-5 space-y-4">
 								{playlists.map((playlist) => {

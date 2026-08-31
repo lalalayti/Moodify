@@ -1,42 +1,104 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { deleteJournalEntry } from './actions'
+import { createClient } from '@/lib/supabase/client'
 import DeleteEntryButton from '@/components/DeleteEntryButton'
 import GeneratePlaylistButton from '@/components/GeneratePlaylistButton'
 
-type JournalPageProps = {
-	params: Promise<{
-		id: string
-	}>
+type JournalEntry = {
+	id: string
+	entry_date: string
+	entry_time: string | null
+	mood: string
+	content: string
+	playlist_strategy: string | null
+	ai_reasoning: string | null
+	ai_emotional_summary: string | null
+	ai_music_direction: string | null
+	ai_search_terms: string[] | null
+	spotify_playlist_id: string | null
+	spotify_playlist_name: string | null
+	spotify_playlist_url: string | null
+	spotify_playlist_image: string | null
 }
 
-export default async function JournalPage({
-	params,
-}: JournalPageProps) {
-	const { id } = await params
+export default function JournalPage() {
+	const params = useParams<{ id: string }>()
+	const router = useRouter()
 
-	const supabase = await createClient()
+	const [entry, setEntry] = useState<JournalEntry | null>(null)
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState('')
 
-	const {
-		data: { user },
-	} = await supabase.auth.getUser()
+	useEffect(() => {
+		async function loadEntry() {
+			const supabase = createClient()
 
-	if (!user) {
-		redirect('/login')
+			const {
+				data: { user },
+				error: userError,
+			} = await supabase.auth.getUser()
+
+			if (userError || !user) {
+				router.replace('/login')
+				return
+			}
+
+			const { data, error } = await supabase
+				.from('journal_entries')
+				.select(
+					'id, entry_date, entry_time, mood, content, playlist_strategy, ai_reasoning, ai_emotional_summary, ai_music_direction, ai_search_terms, spotify_playlist_id, spotify_playlist_name, spotify_playlist_url, spotify_playlist_image'
+				)
+				.eq('id', params.id)
+				.eq('user_id', user.id)
+				.single()
+
+			if (error || !data) {
+				setError('Journal entry not found.')
+				setLoading(false)
+				return
+			}
+
+			setEntry(data)
+			setLoading(false)
+		}
+
+		loadEntry()
+	}, [params.id, router])
+
+	if (loading) {
+		return (
+			<main className="min-h-screen bg-offwhite px-6 py-10">
+				<div className="mx-auto max-w-3xl">
+					<p className="text-gray-500">
+						Loading journal entry...
+					</p>
+				</div>
+			</main>
+		)
 	}
 
-	const { data: entry, error } = await supabase
-		.from('journal_entries')
-		.select(
-			'id, entry_date, entry_time, mood, content, playlist_strategy, ai_reasoning, ai_emotional_summary, ai_music_direction, ai_search_terms, spotify_playlist_id, spotify_playlist_name, spotify_playlist_url, spotify_playlist_image'
-		)
-		.eq('id', id)
-		.eq('user_id', user.id)
-		.single()
-
 	if (error || !entry) {
-		notFound()
+		return (
+			<main className="min-h-screen bg-offwhite px-6 py-10">
+				<div className="mx-auto max-w-3xl">
+					<Link
+						href="/dashboard"
+						className="text-sm font-medium text-[#818bbe]"
+					>
+						← Back to dashboard
+					</Link>
+
+					<div className="mt-6 rounded-3xl bg-white p-8 shadow-sm">
+						<p className="text-red-600">
+							{error || 'Journal entry not found.'}
+						</p>
+					</div>
+				</div>
+			</main>
+		)
 	}
 
 	const formattedDate = new Date(
@@ -186,10 +248,7 @@ export default async function JournalPage({
 								Edit Entry
 							</Link>
 
-							<DeleteEntryButton
-								entryId={entry.id}
-								deleteAction={deleteJournalEntry}
-							/>
+							<DeleteEntryButton entryId={entry.id} />
 						</div>
 					</section>
 				</article>

@@ -1,72 +1,47 @@
 import { NextResponse } from 'next/server'
 import { Type } from '@google/genai'
-import { createClient } from '@/lib/supabase/server'
 import { gemini } from '@/lib/gemini'
 import { searchSpotifyPlaylists } from '@/lib/spotify'
 
 export async function POST(request: Request) {
 	try {
-		const supabase = await createClient()
-
-		const {
-			data: { user },
-		} = await supabase.auth.getUser()
-
-		if (!user) {
-			return NextResponse.json(
-				{ error: 'Unauthorized' },
-				{ status: 401 }
-			)
-		}
-
 		const body = await request.json()
 
-		const entryId = body.entryId
+		const mood = body.mood
+		const content = body.content
+		const playlistStrategy = body.playlistStrategy
 
 		const excludePlaylistIds =
 			Array.isArray(body.excludePlaylistIds)
 				? body.excludePlaylistIds
 				: []
 
-		if (!entryId) {
+		if (!mood || !content || !playlistStrategy) {
 			return NextResponse.json(
-				{ error: 'Journal entry ID is required.' },
+				{
+					error:
+						'Mood, journal entry, and playlist strategy are required.',
+				},
 				{ status: 400 }
 			)
 		}
 
-		const { data: entry, error: entryError } = await supabase
-			.from('journal_entries')
-			.select(
-				'id, mood, content, playlist_strategy, spotify_playlist_id'
-			)
-			.eq('id', entryId)
-			.eq('user_id', user.id)
-			.single()
-
-		if (entryError || !entry) {
-			return NextResponse.json(
-				{ error: 'Journal entry not found.' },
-				{ status: 404 }
-			)
-		}
-
 		const strategy =
-			entry.playlist_strategy === 'cheer_up'
-				? 'Cheer the user up'
-				: 'Match the user\'s current mood'
+			playlistStrategy === 'cheer_up'
+				? 'Cheer the person up'
+				: 'Match the person\'s current mood'
 
 		const prompt = `
 Analyze this private journal entry for music recommendation purposes.
 
-User-selected mood:
-${entry.mood}
+Selected mood:
+${mood}
 
 Playlist strategy:
 ${strategy}
 
 Journal entry:
-${entry.content}
+${content}
 
 Return:
 - a short emotional summary written directly to the person using "you"
@@ -113,18 +88,25 @@ Keep the tone warm, natural, supportive, and concise.
 
 		if (!response.text) {
 			return NextResponse.json(
-				{ error: 'Gemini did not return a response.' },
+				{
+					error:
+						'Gemini did not return a response.',
+				},
 				{ status: 500 }
 			)
 		}
 
 		const analysis = JSON.parse(response.text)
 
-		const searchTerms = analysis.search_terms as string[]
+		const searchTerms =
+			analysis.search_terms as string[]
 
 		if (!searchTerms || searchTerms.length === 0) {
 			return NextResponse.json(
-				{ error: 'Gemini did not generate music search terms.' },
+				{
+					error:
+						'Gemini did not generate music search terms.',
+				},
 				{ status: 500 }
 			)
 		}
@@ -137,7 +119,9 @@ Keep the tone warm, natural, supportive, and concise.
 
 			for (const playlist of playlists) {
 				const alreadyShown =
-					excludePlaylistIds.includes(playlist.id)
+					excludePlaylistIds.includes(
+						playlist.id
+					)
 
 				if (
 					!alreadyShown &&
@@ -156,7 +140,9 @@ Keep the tone warm, natural, supportive, and concise.
 		}
 
 		const suggestedPlaylists =
-			Array.from(playlistMap.values()).slice(0, 5)
+			Array.from(
+				playlistMap.values()
+			).slice(0, 5)
 
 		if (suggestedPlaylists.length === 0) {
 			return NextResponse.json(
@@ -165,33 +151,6 @@ Keep the tone warm, natural, supportive, and concise.
 						'No matching Spotify playlists were found.',
 				},
 				{ status: 404 }
-			)
-		}
-
-		const reasoning = [
-			analysis.emotional_summary,
-			analysis.music_recommendation,
-			`Search Terms: ${analysis.search_terms.join(', ')}`,
-		].join('\n\n')
-
-		const { error: updateError } = await supabase
-			.from('journal_entries')
-			.update({
-				ai_reasoning: reasoning,
-				ai_emotional_summary:
-					analysis.emotional_summary,
-				ai_music_direction:
-					analysis.music_recommendation,
-				ai_search_terms:
-					analysis.search_terms,
-			})
-			.eq('id', entry.id)
-			.eq('user_id', user.id)
-
-		if (updateError) {
-			return NextResponse.json(
-				{ error: updateError.message },
-				{ status: 500 }
 			)
 		}
 
